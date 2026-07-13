@@ -24,8 +24,8 @@
   </div>
 
   <div class="score-row">
-    <div class="score-pill"><span class="score-label">SKOR</span><span id="scoreValue">0</span></div>
-    <div class="score-pill best-pill"><span class="score-label">TERBAIK</span><span id="bestValue">0</span></div>
+    <div class="score-pill"><span class="score-label">SCORE</span><span id="scoreValue">0</span></div>
+    <div class="score-pill best-pill"><span class="score-label">BEST SCORE</span><span id="bestValue">0</span></div>
   </div>
 
   <div class="stage-wrap">
@@ -42,8 +42,8 @@
 <div class="modal-backdrop open" id="startModal">
   <div class="modal-box">
     <img src="assets/icon4.png" alt="">
-    <p id="startMessage">Bersiap menangkap icon!</p>
-    <button onclick="startGame()">Mulai</button>
+    <p id="startMessage">Be ready!</p>
+    <button onclick="startGame()">Start</button>
   </div>
 </div>
 
@@ -52,10 +52,10 @@
   <div class="modal-box">
     <img src="assets/icon4.png" alt="">
     <p id="overMessage">Game Over!</p>
-    <div class="final-score" id="finalScore">Skor akhir: 0</div>
+    <div class="final-score" id="finalScore">Your Score: 0</div>
     <div class="modal-btn-row">
-      <button class="secondary-btn" onclick="window.location.href='index.html'">Beranda</button>
-      <button onclick="resetGame()">Coba Lagi</button>
+      <button class="secondary-btn" onclick="window.location.href='index.html'">Home</button>
+      <button onclick="resetGame()">Try Again</button>
     </div>
   </div>
 </div>
@@ -66,7 +66,7 @@ const playerName = params.get('name') || 'Friend';
 const dayNumber = params.get('day') || '4';
 
 document.getElementById('startMessage').textContent =
-  `Halo, ${playerName}! Tangkap semua icon yang jatuh pakai keranjang. Setiap tangkapan +10 poin — jangan sampai ada yang lolos!`;
+  `Haloh, ${playerName}! Tangkap semua Adi yang jatuh pakai keranjang. Jangan sampai ada yang lolos atau aku joget nih?`;
 
 document.querySelectorAll('.modal-box img').forEach(img => {
   img.addEventListener('error', function(){
@@ -199,8 +199,8 @@ function endGame(){
   }
   bestValueEl.textContent = bestScore;
 
-  document.getElementById('overMessage').textContent = `Yah, ada icon yang lolos, ${playerName}!`;
-  document.getElementById('finalScore').textContent = `Skor akhir: ${score}`;
+  document.getElementById('overMessage').textContent = `Yah, kaga ketangkep, ${playerName}... SS jgn lupa`;
+  document.getElementById('finalScore').textContent = `Your Score: ${score}`;
   document.getElementById('overModal').classList.add('open');
 }
 

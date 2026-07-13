@@ -99,10 +99,6 @@
     </button>
   </div>
 
-  <div class="back-link-wrap">
-    <a class="back-link" href="index.html">← Back to Attendance</a>
-  </div>
-
 </div>
 
 <!-- Congrats popup -->
@@ -198,14 +194,14 @@ function drawBadge(){
   const name = (playerName || 'FRIEND').toUpperCase();
 
   const H = RES * 0.09;          // outer pill height
-  const border = H * 0.15;       // outer stroke thickness
+  const border = H * 0.7;       // outer stroke thickness
   const innerH = H - border * 2;
   const textPadX = innerH * 0.5;
   const byLeftPad = H * 0.34;
   const gap = H * 0.16;
 
   let fontSize = innerH * 0.6;
-  badgeCtx.font = `800 ${H * 0.4}px Inter, sans-serif`;
+  badgeCtx.font = `500 ${H * 0.4}px Inter, sans-serif`;
   const byWidth = badgeCtx.measureText('BY').width;
 
   badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;

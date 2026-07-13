@@ -194,18 +194,18 @@ function drawBadge(){
   const name = (playerName || 'FRIEND').toUpperCase();
   const LABEL = 'Dadah';
 
-  const H = RES * 0.09;          // outer pill height
-  const border = H * 0.06;       // outer stroke thickness (tipis)
-  const yellowH = H * 0.62;      // tinggi pil kuning
-  const yellowPadX = yellowH * 0.42;
-  const leftPad = H * 0.16;
-  const gap = H * 0.22;
-  const rightPad = H * 0.32;
+  const H = RES * 0.065;         // outer pill height (lebih kecil)
+  const border = H * 0.045;      // outer stroke thickness (lebih tipis)
+  const yellowH = H * 0.6;       // tinggi pil kuning
+  const yellowPadX = yellowH * 0.38;
+  const leftPad = H * 0.14;
+  const gap = H * 0.2;
+  const rightPad = H * 0.28;
 
-  let labelFontSize = yellowH * 0.55;
-  let nameFontSize = H * 0.5;
+  let labelFontSize = yellowH * 0.5;
+  let nameFontSize = H * 0.46;
 
-  badgeCtx.font = `800 ${labelFontSize}px Inter, sans-serif`;
+  badgeCtx.font = `500 ${labelFontSize}px Inter, sans-serif`;
   let labelWidth = badgeCtx.measureText(LABEL).width;
   let yellowWidth = labelWidth + yellowPadX * 2;
 
@@ -214,13 +214,13 @@ function drawBadge(){
 
   let outerWidth = border + leftPad + yellowWidth + gap + nameWidth + rightPad + border;
 
-  const maxOuterWidth = RES * 0.86;
+  const maxOuterWidth = RES * 0.8;
   if(outerWidth > maxOuterWidth){
     const scale = maxOuterWidth / outerWidth;
     labelFontSize *= scale;
     nameFontSize *= scale;
 
-    badgeCtx.font = `800 ${labelFontSize}px Inter, sans-serif`;
+    badgeCtx.font = `500 ${labelFontSize}px Inter, sans-serif`;
     labelWidth = badgeCtx.measureText(LABEL).width;
     yellowWidth = labelWidth + yellowPadX * 2;
 
@@ -248,7 +248,7 @@ function drawBadge(){
   badgeCtx.fillStyle = '#f3d141';
   badgeCtx.fill();
 
-  badgeCtx.font = `800 ${labelFontSize}px Inter, sans-serif`;
+  badgeCtx.font = `500 ${labelFontSize}px Inter, sans-serif`;
   badgeCtx.fillStyle = '#0063c3';
   badgeCtx.textBaseline = 'middle';
   badgeCtx.textAlign = 'center';

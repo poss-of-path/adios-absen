@@ -2,24 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Adiosection — Day 4: Catch the Icon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Adiosection — Day 4: Catch Adi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="catch.css">
 </head>
-<body>
+<body class="catch-body">
 
 <div class="page catch-page">
+
+  <a class="back-fab" href="index.html" aria-label="Kembali ke Attendance">←</a>
 
   <div class="logo-wrap">
     <img src="assets/logo.png" alt="Adiosection logo">
   </div>
 
   <div class="game-header">
-    <div class="game-title">TANGKAP ICON!</div>
-    <div class="game-subtitle">Geser keranjang ke kiri &amp; kanan untuk menangkap semua icon yang jatuh. Satu saja lolos, permainan selesai!</div>
+    <div class="game-title">CATCH ADI</div>
   </div>
 
   <div class="score-row">
@@ -30,12 +31,11 @@
   <div class="stage-wrap">
     <div class="stage" id="stage">
       <div class="basket" id="basket">
-        <img src="assets/Keranjang.png" alt="Keranjang">
+        <img src="assets/basket.png" alt="Keranjang">
       </div>
     </div>
   </div>
 
- 
 </div>
 
 <!-- Start / countdown overlay -->
@@ -88,7 +88,7 @@ const scoreValueEl = document.getElementById('scoreValue');
 const bestValueEl = document.getElementById('bestValue');
 
 let stageW = 0, stageH = 0, basketW = 0, basketH = 0;
-let basketX = 0; // left position of basket
+let basketX = 0; // left offset of basket, applied via transform (not `left`) to avoid mobile repaint/ghosting artifacts
 let score = 0;
 let running = false;
 let rafId = null;
@@ -111,7 +111,6 @@ bestValueEl.textContent = bestScore;
 
 function currentSpeed(){
   const t = Math.min(elapsed / SPEED_RAMP_TIME, 1);
-  // ease-in so the speed-up feels gradual at first, then noticeably faster
   const eased = t * t * (3 - 2 * t);
   return BASE_SPEED + (MAX_SPEED - BASE_SPEED) * eased;
 }
@@ -127,13 +126,13 @@ function measure(){
   basketW = basketEl.offsetWidth;
   basketH = basketEl.offsetHeight;
   basketX = Math.min(Math.max(basketX, 0), stageW - basketW);
-  basketEl.style.left = basketX + 'px';
+  basketEl.style.transform = `translate3d(${basketX}px,0,0)`;
 }
 
 function setBasketCenterX(cx){
   basketX = cx - basketW / 2;
   basketX = Math.max(0, Math.min(stageW - basketW, basketX));
-  basketEl.style.left = basketX + 'px';
+  basketEl.style.transform = `translate3d(${basketX}px,0,0)`;
 }
 
 // ---- pointer / touch drag control ----
@@ -164,16 +163,22 @@ function spawnItem(){
   const src = ICONS[Math.floor(Math.random() * ICONS.length)];
   const x = Math.random() * (stageW - size);
 
-  const el = document.createElement('img');
-  el.src = src;
-  el.className = 'falling-icon';
-  el.style.width = size + 'px';
-  el.style.height = size + 'px';
-  el.style.left = x + 'px';
-  el.style.top = -size + 'px';
-  stage.appendChild(el);
+  // Wrapper handles vertical fall via transform (GPU-composited, no
+  // repaint smearing). The inner <img> is free to run its own catch
+  // animation without fighting the wrapper's transform.
+  const wrap = document.createElement('div');
+  wrap.className = 'falling-icon';
+  wrap.style.width = size + 'px';
+  wrap.style.height = size + 'px';
+  wrap.style.left = x + 'px';
+  wrap.style.transform = `translate3d(0,${-size}px,0)`;
 
-  fallingItems.push({ el, x, y: -size, size, caught: false });
+  const img = document.createElement('img');
+  img.src = src;
+  wrap.appendChild(img);
+  stage.appendChild(wrap);
+
+  fallingItems.push({ el: wrap, x, y: -size, size, caught: false });
 }
 
 function catchEffect(item){
@@ -226,7 +231,7 @@ function tick(now){
     const item = fallingItems[i];
     if(item.caught) continue;
     item.y += speed * dt;
-    item.el.style.top = item.y + 'px';
+    item.el.style.transform = `translate3d(0,${item.y}px,0)`;
 
     const itemBottom = item.y + item.size;
     const itemCenterX = item.x + item.size / 2;

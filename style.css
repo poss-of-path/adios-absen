@@ -149,8 +149,13 @@ h1.title{
 .card.bg-blue .day-label{ color: var(--yellow); }
 
 /* completed / starred state */
-.card.completed{
+.card.completed-blue{
   background: var(--blue);
+}
+
+/* completed / starred state */
+.card.completed-yellow{
+  background: var(--yellow);
 }
 
 .star-wrap{

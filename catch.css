@@ -1,0 +1,130 @@
+.catch-page{
+  gap: 18px;
+}
+
+/* ---------- Score row ---------- */
+
+.score-row{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: -4px 0 2px;
+}
+
+.score-pill{
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  background: var(--blue);
+  color: var(--cream);
+  font-weight: 800;
+  font-size: 18px;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  min-width: 92px;
+  justify-content: center;
+}
+
+.score-pill .score-label{
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--yellow);
+  opacity: 0.95;
+}
+
+.score-pill.best-pill{
+  background: var(--yellow);
+  color: var(--blue);
+}
+
+.score-pill.best-pill .score-label{
+  color: var(--blue-ink);
+}
+
+/* ---------- Stage ---------- */
+
+.stage-wrap{
+  display: flex;
+  justify-content: center;
+}
+
+.stage{
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: 62vh;
+  max-height: 520px;
+  min-height: 360px;
+  background: linear-gradient(180deg, rgba(0,99,195,0.06) 0%, rgba(0,99,195,0.02) 100%);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  touch-action: none;
+  cursor: none;
+  box-shadow: var(--shadow-card);
+}
+
+.falling-icon{
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(37,37,37,0.18));
+  will-change: top;
+}
+
+.falling-icon.caught{
+  animation: pop-catch .26s ease forwards;
+}
+
+@keyframes pop-catch{
+  0%{ transform: scale(1); opacity: 1; }
+  100%{ transform: scale(1.4); opacity: 0; }
+}
+
+.basket{
+  position: absolute;
+  bottom: 10px;
+  width: 92px;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(37,37,37,0.22));
+}
+
+.basket img{
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- Game over extras ---------- */
+
+.final-score{
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--blue);
+  margin: -12px 0 20px;
+}
+
+.modal-btn-row{
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-btn-row .secondary-btn{
+  background: var(--cream);
+  color: var(--blue);
+  border: 2px solid var(--blue);
+}
+
+.modal-btn-row .secondary-btn:hover{
+  background: var(--blue);
+  color: var(--cream);
+}
+
+/* ---------- Mobile tuning ---------- */
+@media (max-width: 480px){
+  .stage{ height: 58vh; min-height: 320px; }
+  .basket{ width: 78px; }
+  .score-pill{ font-size: 16px; padding: 7px 14px; min-width: 80px; }
+}

@@ -194,7 +194,7 @@ function drawBadge(){
   const name = (playerName || 'FRIEND').toUpperCase();
 
   const H = RES * 0.09;          // outer pill height
-  const border = H * 0.7;       // outer stroke thickness
+  const border = H * 0.07;       // outer stroke thickness
   const innerH = H - border * 2;
   const textPadX = innerH * 0.5;
   const byLeftPad = H * 0.34;
@@ -224,7 +224,7 @@ function drawBadge(){
 
   // outer capsule — white fill, blue border
   roundRectPath(badgeCtx, outerX, outerY, outerWidth, H, H / 2);
-  badgeCtx.fillStyle = '#ffffff';
+  badgeCtx.fillStyle = '#0063c3';
   badgeCtx.fill();
   badgeCtx.lineWidth = border;
   badgeCtx.strokeStyle = '#0063c3';
@@ -234,19 +234,19 @@ function drawBadge(){
   const innerX = outerX + outerWidth - border - innerWidth;
   const innerY = outerY + border;
   roundRectPath(badgeCtx, innerX, innerY, innerWidth, innerH, innerH / 2);
-  badgeCtx.fillStyle = '#0063c3';
+  badgeCtx.fillStyle = '#f3d141';
   badgeCtx.fill();
 
   // "BY" label
   badgeCtx.font = `800 ${H * 0.4}px Inter, sans-serif`;
-  badgeCtx.fillStyle = '#252525';
+  badgeCtx.fillStyle = '#f3d141';
   badgeCtx.textBaseline = 'middle';
   badgeCtx.textAlign = 'left';
   badgeCtx.fillText('BY', outerX + byLeftPad, outerY + H / 2 + H * 0.02);
 
   // player name
   badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;
-  badgeCtx.fillStyle = '#f3d141';
+  badgeCtx.fillStyle = '#0063c3';
   badgeCtx.textAlign = 'center';
   badgeCtx.fillText(name, innerX + innerWidth / 2, innerY + innerH / 2 + fontSize * 0.03);
 }

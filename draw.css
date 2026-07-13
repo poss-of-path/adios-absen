@@ -32,17 +32,17 @@
   background: #fff;
   border: 2px solid var(--blue);
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .tool-row{
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -50,9 +50,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   border: 2px solid var(--blue);
   background: var(--cream);
   color: var(--blue);
@@ -62,7 +62,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.tool-btn svg{ width: 22px; height: 22px; }
+.tool-btn svg{ width: 18px; height: 18px; }
 
 .tool-btn:hover{ transform: translateY(-1px); }
 
@@ -98,27 +98,22 @@
 .reset-btn:hover{ opacity: 0.9; background: rgba(37,37,37,0.06); }
 .reset-btn svg{ width: 16px; height: 16px; }
 
-/* ---------- Thickness row ---------- */
+/* ---------- Thickness + color row (combined, compact) ---------- */
 
 .thickness-row{
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.thickness-label{
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--blue);
-  white-space: nowrap;
-  min-width: 58px;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .thickness-row input[type="range"]{
-  flex: 1;
+  width: 90px;
+  flex: 0 0 auto;
   -webkit-appearance: none;
   appearance: none;
-  height: 6px;
+  height: 4px;
   border-radius: 999px;
   background: rgba(0,99,195,0.18);
   outline: none;
@@ -127,29 +122,28 @@
 .thickness-row input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: var(--blue);
-  border: 3px solid var(--cream);
-  box-shadow: 0 0 0 2px var(--blue);
+  border: 2px solid var(--cream);
+  box-shadow: 0 0 0 1.5px var(--blue);
   cursor: pointer;
 }
 
 .thickness-row input[type="range"]::-moz-range-thumb{
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: var(--blue);
-  border: 3px solid var(--cream);
-  box-shadow: 0 0 0 2px var(--blue);
+  border: 2px solid var(--cream);
+  box-shadow: 0 0 0 1.5px var(--blue);
   cursor: pointer;
-  border: none;
 }
 
 .thickness-preview{
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--cream);
   border: 2px solid var(--blue);
@@ -165,19 +159,19 @@
   transition: width .1s ease, height .1s ease;
 }
 
-/* ---------- Color palette ---------- */
+/* ---------- Color palette (primary colors only) ---------- */
 
 .palette-row{
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .swatch{
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 2px solid rgba(37,37,37,0.12);
   cursor: pointer;
@@ -194,8 +188,8 @@
 }
 
 .swatch-custom{
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 2px solid rgba(37,37,37,0.12);
   cursor: pointer;
@@ -248,6 +242,7 @@
 
 #baseLayer{ z-index: 1; }
 #drawLayer{ z-index: 2; cursor: crosshair; }
+#badgeLayer{ z-index: 3; pointer-events: none; }
 
 .canvas-hint{
   position: absolute;

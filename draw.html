@@ -49,6 +49,12 @@
 
       <div class="tool-divider"></div>
 
+      <button class="tool-btn" id="toolUndo" title="Urungkan garis terakhir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+      </button>
       <button class="reset-btn" id="toolReset" title="Bersihkan gambar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
@@ -59,16 +65,17 @@
     </div>
 
     <div class="thickness-row">
-      <span class="thickness-label">KETEBALAN</span>
       <input type="range" id="thicknessSlider" min="2" max="40" value="8">
       <div class="thickness-preview"><div class="thickness-dot" id="thicknessDot"></div></div>
-    </div>
 
-    <div class="palette-row" id="paletteRow">
-      <label class="swatch-custom" title="Warna kustom">
-        <input type="color" id="customColor" value="#0063c3">
-      </label>
-      <!-- swatches injected by JS -->
+      <div class="tool-divider"></div>
+
+      <div class="palette-row" id="paletteRow">
+        <!-- primary swatches injected by JS -->
+        <label class="swatch-custom" title="Warna lainnya">
+          <input type="color" id="customColor" value="#0063c3">
+        </label>
+      </div>
     </div>
 
   </div>
@@ -77,6 +84,7 @@
     <div class="canvas-square" id="canvasSquare">
       <canvas id="baseLayer"></canvas>
       <canvas id="drawLayer"></canvas>
+      <canvas id="badgeLayer"></canvas>
     </div>
   </div>
 
@@ -136,11 +144,13 @@ const RES = 640; // fixed internal resolution, keeps drawings intact on resize
 
 const baseCanvas = document.getElementById('baseLayer');
 const drawCanvas = document.getElementById('drawLayer');
-baseCanvas.width = drawCanvas.width = RES;
-baseCanvas.height = drawCanvas.height = RES;
+const badgeCanvas = document.getElementById('badgeLayer');
+baseCanvas.width = drawCanvas.width = badgeCanvas.width = RES;
+baseCanvas.height = drawCanvas.height = badgeCanvas.height = RES;
 
 const baseCtx = baseCanvas.getContext('2d');
 const drawCtx = drawCanvas.getContext('2d');
+const badgeCtx = badgeCanvas.getContext('2d');
 
 // offscreen canvas used only to composite base+draw for fill-boundary detection
 const mergeCanvas = document.createElement('canvas');
@@ -166,19 +176,100 @@ function drawBaseLayer(){
 }
 drawBaseLayer();
 
+/* =========================================================
+   "BY {NAME}" BADGE — rendered onto its own canvas layer so it
+   stays fixed on top while drawing, and gets baked into the
+   downloaded image automatically.
+========================================================= */
+
+function roundRectPath(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawBadge(){
+  badgeCtx.clearRect(0, 0, RES, RES);
+
+  const name = (playerName || 'FRIEND').toUpperCase();
+
+  const H = RES * 0.09;          // outer pill height
+  const border = H * 0.15;       // outer stroke thickness
+  const innerH = H - border * 2;
+  const textPadX = innerH * 0.5;
+  const byLeftPad = H * 0.34;
+  const gap = H * 0.16;
+
+  let fontSize = innerH * 0.6;
+  badgeCtx.font = `800 ${H * 0.4}px Inter, sans-serif`;
+  const byWidth = badgeCtx.measureText('BY').width;
+
+  badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;
+  let nameWidth = badgeCtx.measureText(name).width;
+  let innerWidth = nameWidth + textPadX * 2;
+  let outerWidth = byLeftPad + byWidth + gap + innerWidth + border;
+
+  const maxOuterWidth = RES * 0.86;
+  if(outerWidth > maxOuterWidth){
+    const scale = maxOuterWidth / outerWidth;
+    fontSize *= scale;
+    badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;
+    nameWidth = badgeCtx.measureText(name).width;
+    innerWidth = nameWidth + textPadX * 2;
+    outerWidth = byLeftPad + byWidth + gap + innerWidth + border;
+  }
+
+  const outerX = (RES - outerWidth) / 2;
+  const outerY = RES * 0.04;
+
+  // outer capsule — white fill, blue border
+  roundRectPath(badgeCtx, outerX, outerY, outerWidth, H, H / 2);
+  badgeCtx.fillStyle = '#ffffff';
+  badgeCtx.fill();
+  badgeCtx.lineWidth = border;
+  badgeCtx.strokeStyle = '#0063c3';
+  badgeCtx.stroke();
+
+  // inner capsule — blue fill, hugs the right side
+  const innerX = outerX + outerWidth - border - innerWidth;
+  const innerY = outerY + border;
+  roundRectPath(badgeCtx, innerX, innerY, innerWidth, innerH, innerH / 2);
+  badgeCtx.fillStyle = '#0063c3';
+  badgeCtx.fill();
+
+  // "BY" label
+  badgeCtx.font = `800 ${H * 0.4}px Inter, sans-serif`;
+  badgeCtx.fillStyle = '#252525';
+  badgeCtx.textBaseline = 'middle';
+  badgeCtx.textAlign = 'left';
+  badgeCtx.fillText('BY', outerX + byLeftPad, outerY + H / 2 + H * 0.02);
+
+  // player name
+  badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;
+  badgeCtx.fillStyle = '#f3d141';
+  badgeCtx.textAlign = 'center';
+  badgeCtx.fillText(name, innerX + innerWidth / 2, innerY + innerH / 2 + fontSize * 0.03);
+}
+
+drawBadge();
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(drawBadge); // re-draw once Inter is fully loaded for accurate metrics
+}
+
 /* ---------------- Toolbar state ---------------- */
 
-const COLORS = [
-  '#252525', '#ffffff', '#0063c3', '#f3d141', '#e94f37', '#2ec4b6',
-  '#ff6b9d', '#8338ec', '#06d6a0', '#fb8500', '#3a86ff', '#ff006e',
-  '#ffbe0b', '#8ac926', '#5e548e', '#c9184a'
-];
+const COLORS = ['#252525', '#ffffff', '#0063c3', '#f3d141', '#e94f37', '#06d6a0'];
 
 let currentTool = 'pen'; // 'pen' | 'fill' | 'eraser'
 let currentColor = '#0063c3';
 let thickness = 8;
 
 const paletteRow = document.getElementById('paletteRow');
+const customColorLabel = paletteRow.querySelector('.swatch-custom');
 COLORS.forEach(c => {
   const b = document.createElement('button');
   b.className = 'swatch';
@@ -186,7 +277,7 @@ COLORS.forEach(c => {
   b.dataset.color = c;
   if(c === currentColor) b.classList.add('active');
   b.addEventListener('click', () => selectColor(c));
-  paletteRow.appendChild(b);
+  paletteRow.insertBefore(b, customColorLabel);
 });
 
 const customColorInput = document.getElementById('customColor');
@@ -225,8 +316,30 @@ thicknessSlider.addEventListener('input', (e) => {
 });
 updateThicknessDot();
 
+/* ---------------- Undo history ---------------- */
+
+const historyStack = [];
+const HISTORY_LIMIT = 25;
+
+function saveHistory(){
+  try {
+    const snapshot = drawCtx.getImageData(0, 0, RES, RES);
+    historyStack.push(snapshot);
+    if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+  } catch(e) { /* ignore */ }
+}
+
+function undo(){
+  if(!historyStack.length) return;
+  const snapshot = historyStack.pop();
+  drawCtx.putImageData(snapshot, 0, 0);
+}
+
+document.getElementById('toolUndo').addEventListener('click', undo);
+
 document.getElementById('toolReset').addEventListener('click', () => {
   if(confirm('Bersihkan seluruh gambar?')){
+    saveHistory();
     drawCtx.clearRect(0, 0, RES, RES);
   }
 });
@@ -234,7 +347,7 @@ document.getElementById('toolReset').addEventListener('click', () => {
 /* ---------------- Drawing (pen / eraser) ---------------- */
 
 let drawing = false;
-let lastPos = null;
+let strokePoints = [];
 
 function getPos(e){
   const rect = drawCanvas.getBoundingClientRect();
@@ -246,55 +359,89 @@ function getPos(e){
   };
 }
 
-function strokeTo(pos){
+function midpoint(a, b){
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+function setStrokeStyleForTool(){
   drawCtx.lineJoin = 'round';
   drawCtx.lineCap = 'round';
   drawCtx.lineWidth = thickness;
-
   if(currentTool === 'eraser'){
     drawCtx.globalCompositeOperation = 'destination-out';
     drawCtx.strokeStyle = 'rgba(0,0,0,1)';
+    drawCtx.fillStyle = 'rgba(0,0,0,1)';
   } else {
     drawCtx.globalCompositeOperation = 'source-over';
     drawCtx.strokeStyle = currentColor;
+    drawCtx.fillStyle = currentColor;
   }
+}
 
-  drawCtx.beginPath();
-  drawCtx.moveTo(lastPos.x, lastPos.y);
-  drawCtx.lineTo(pos.x, pos.y);
-  drawCtx.stroke();
+function beginStroke(pos){
+  saveHistory();
+  strokePoints = [pos];
+  setStrokeStyleForTool();
 
-  // dot for single taps/clicks
+  // draw a dot immediately so a single tap/click still shows up
   drawCtx.beginPath();
   drawCtx.arc(pos.x, pos.y, thickness / 2, 0, Math.PI * 2);
-  drawCtx.fillStyle = currentTool === 'eraser' ? 'rgba(0,0,0,1)' : currentColor;
   drawCtx.fill();
+}
 
-  lastPos = pos;
+// Smooths freehand input by drawing a quadratic curve through the
+// midpoints of the last three points, instead of straight segments —
+// removes the jittery/jagged look and gives an iPad-like smooth line.
+function extendStroke(pos){
+  strokePoints.push(pos);
+  const len = strokePoints.length;
+
+  if(len < 3){
+    const p0 = strokePoints[len - 2], p1 = strokePoints[len - 1];
+    drawCtx.beginPath();
+    drawCtx.moveTo(p0.x, p0.y);
+    drawCtx.lineTo(p1.x, p1.y);
+    drawCtx.stroke();
+    return;
+  }
+
+  const p1 = strokePoints[len - 3];
+  const p2 = strokePoints[len - 2];
+  const p3 = strokePoints[len - 1];
+  const mid1 = midpoint(p1, p2);
+  const mid2 = midpoint(p2, p3);
+
+  drawCtx.beginPath();
+  drawCtx.moveTo(mid1.x, mid1.y);
+  drawCtx.quadraticCurveTo(p2.x, p2.y, mid2.x, mid2.y);
+  drawCtx.stroke();
+
+  // keep only the last few points in memory — we never need more for smoothing
+  if(strokePoints.length > 4) strokePoints.shift();
 }
 
 drawCanvas.addEventListener('pointerdown', (e) => {
   const pos = getPos(e);
 
   if(currentTool === 'fill'){
+    saveHistory();
     floodFill(Math.floor(pos.x), Math.floor(pos.y), currentColor);
     return;
   }
 
   drawing = true;
-  lastPos = pos;
   drawCanvas.setPointerCapture(e.pointerId);
-  strokeTo(pos); // register the initial point as a dot
+  beginStroke(pos);
 });
 
 drawCanvas.addEventListener('pointermove', (e) => {
   if(!drawing) return;
-  strokeTo(getPos(e));
+  extendStroke(getPos(e));
 });
 
 function endStroke(){
   drawing = false;
-  lastPos = null;
+  strokePoints = [];
 }
 drawCanvas.addEventListener('pointerup', endStroke);
 drawCanvas.addEventListener('pointerleave', endStroke);
@@ -364,6 +511,7 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   const exportCtx = exportCanvas.getContext('2d');
   exportCtx.drawImage(baseCanvas, 0, 0);
   exportCtx.drawImage(drawCanvas, 0, 0);
+  exportCtx.drawImage(badgeCanvas, 0, 0);
 
   const link = document.createElement('a');
   const safeName = playerName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'drawing';

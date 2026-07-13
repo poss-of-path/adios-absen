@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adiosection — Attendance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <div class="logo-wrap">
+    <img src="assets/logo.png" alt="Adiosection logo">
+  </div>
+
+  <h1 class="title">ATTENDANCE</h1>
+  <p class="subtitle">
+    Leave a little sign that you were here before saying adios. 
+    A tiny trace of your presence is all we need.
+  </p>
+
+  <!--
+    TEMPLATE NOTE:
+    To mark a future day as completed, just add class="completed" to that
+    .card and swap its inner markup for the "completed" block below
+    (star icon + WELL DONE label) — see Day 1 as the reference example.
+  -->
+
+  <div class="grid" id="cardGrid">
+
+    <!-- DAY 1 — completed -->
+    <div class="card bg-blue completed" data-day="1">
+      <div class="star-wrap">
+        <div class="star-frame">
+          <img class="star" src="assets/star.png" alt="">
+        </div>
+        <div class="done-label">WELL<br>DONE!</div>
+      </div>
+    </div>
+
+    <!-- DAY 2 -->
+    <div class="card bg-yellow" data-day="2" onclick="goToDay(2)">
+      <div class="icon-frame"><img class="icon" src="assets/icon1.png" alt="Day 2 icon"></div>
+      <div class="day-label">DAY 2</div>
+    </div>
+
+    <!-- DAY 3 -->
+    <div class="card bg-blue" data-day="3" onclick="goToDay(3)">
+      <div class="icon-frame"><img class="icon" src="assets/icon2.png" alt="Day 3 icon"></div>
+      <div class="day-label">DAY 3</div>
+    </div>
+
+    <!-- DAY 4 -->
+    <div class="card bg-yellow" data-day="4" onclick="goToDay(4)">
+      <div class="icon-frame"><img class="icon" src="assets/icon3.png" alt="Day 4 icon"></div>
+      <div class="day-label">DAY 4</div>
+    </div>
+
+    <!-- DAY 5 -->
+    <div class="card bg-blue" data-day="5" onclick="goToDay(5)">
+      <div class="icon-frame"><img class="icon" src="assets/icon4.png" alt="Day 5 icon"></div>
+      <div class="day-label">DAY 5</div>
+    </div>
+
+    <!-- DAY 6 -->
+    <div class="card bg-yellow" data-day="6" onclick="goToDay(6)">
+      <div class="icon-frame"><img class="icon" src="assets/icon5.png" alt="Day 6 icon"></div>
+      <div class="day-label">DAY 6</div>
+    </div>
+
+  </div>
+
+  <div class="footer-pill-wrap">
+    <div class="footer-pill"><b>Adiosection;</b> Attendance.</div>
+  </div>
+
+</div>
+
+<!-- OOPS popup (days that aren't unlocked yet) -->
+<div class="modal-backdrop" id="oopsModal">
+  <div class="modal-box">
+    <img src="assets/icon4.png" alt="">
+    <p>Oops, you haven't reached this point yet.</p>
+    <button onclick="closeOops()">OK</button>
+  </div>
+</div>
+
+<!-- Name entry popup, shown before Day 2's game starts -->
+<div class="modal-backdrop" id="nameModal">
+  <div class="modal-box">
+    <p>Enter your name</p>
+    <input type="text" id="nameInput" class="name-input" placeholder="Your name" maxlength="30" autocomplete="off">
+    <button onclick="submitName()">Start</button>
+  </div>
+</div>
+
+<script>
+  let pendingDay = null;
+
+  // Days with a live game/page to send the player to after the name modal.
+  // Add more entries here as future days get unlocked (e.g. 4: 'game4.html').
+  const DAY_PAGES = { 2: 'game.html', 3: 'draw.html' };
+
+  function goToDay(day){
+    if(DAY_PAGES[day]){
+      pendingDay = day;
+      const modal = document.getElementById('nameModal');
+      modal.classList.add('open');
+      const input = document.getElementById('nameInput');
+      input.value = '';
+      setTimeout(() => input.focus(), 50);
+      return;
+    }
+    // Any other day is locked until unlocked via the same "completed" template as Day 1
+    document.getElementById('oopsModal').classList.add('open');
+  }
+
+  function closeOops(){
+    document.getElementById('oopsModal').classList.remove('open');
+  }
+
+  function submitName(){
+    const input = document.getElementById('nameInput');
+    const name = input.value.trim() || 'Friend';
+    document.getElementById('nameModal').classList.remove('open');
+    const target = DAY_PAGES[pendingDay] || 'game.html';
+    window.location.href = `${target}?name=${encodeURIComponent(name)}&day=${pendingDay}`;
+  }
+
+  document.getElementById('nameInput').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') submitName();
+  });
+</script>
+
+</body>
+</html>

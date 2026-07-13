@@ -1,0 +1,291 @@
+/* ===========================================================
+   Adiosection — Attendance
+   Palette: Blue #0063C3 · Yellow #F3D141 · Cream #FCF9EE · Ink #252525
+   Font: Inter (weight does all the talking)
+=========================================================== */
+
+:root{
+  --blue: #0063c3;
+  --blue-ink: #0052a3;
+  --yellow: #f3d141;
+  --cream: #fcf9ee;
+  --ink: #252525;
+
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 10px 24px rgba(37,37,37,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html, body{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page{
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 28px 32px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 26px;
+}
+
+/* ---------- Header ---------- */
+
+.logo-wrap{
+  display: flex;
+  justify-content: center;
+}
+
+.logo-wrap img{
+  max-width: 62%;
+  height: auto;
+  max-height: 132px;
+  width: auto;
+  object-fit: contain;
+}
+
+h1.title{
+  text-align: center;
+  font-weight: 700;
+  font-size: clamp(28px, 7vw, 42px);
+  letter-spacing: 0.3px;
+  margin: 0;
+  color: var(--ink);
+}
+
+.subtitle{
+  text-align: center;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  opacity: 0.72;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* ---------- Card grid ---------- */
+
+.grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+.card{
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-top: 100%; /* classic responsive-square trick — more reliable across
+                         renderers than the aspect-ratio property */
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: none;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: transform .15s ease, box-shadow .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card:hover{ transform: translateY(-3px); }
+.card:active{ transform: translateY(0px) scale(0.98); }
+
+.card.bg-blue{ background: var(--blue); }
+.card.bg-yellow{ background: var(--yellow); }
+
+/* Icon sits inside a plain <div> "frame" that's absolutely positioned
+   with fixed inset percentages. Doing the inset math on a plain div
+   (not the <img> itself) avoids a browser edge case where an <img>
+   with an intrinsic ratio + auto width/height + all 4 offsets set can
+   collapse to 0×0 and vanish. The image then just fills its frame. */
+.card .icon-frame{
+  position: absolute;
+  top: 12%;
+  left: 14%;
+  right: 14%;
+  bottom: 30%;
+  pointer-events: none;
+}
+
+.card .icon{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card .day-label{
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 9%;
+  text-align: center;
+  font-weight: 800;
+  font-size: clamp(13px, 4vw, 20px);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.card.bg-yellow .day-label{ color: var(--blue); }
+.card.bg-blue .day-label{ color: var(--yellow); }
+
+/* completed / starred state */
+.card.completed{
+  background: var(--blue);
+}
+
+.star-wrap{
+  position: absolute;
+  inset: 0;
+}
+
+.star-wrap .star-frame{
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  pointer-events: none;
+}
+
+.star-wrap .star{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.star-wrap .done-label{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% + 5px));
+  font-weight: 800;
+  color: var(--blue);
+  font-size: clamp(12px, 3.4vw, 15px);
+  line-height: 1.15;
+  text-align: center;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
+
+/* ---------- Footer pill ---------- */
+
+.footer-pill-wrap{
+  display: flex;
+  justify-content: center;
+}
+
+.footer-pill{
+  background: var(--blue);
+  color: var(--yellow);
+  font-size: 13px;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+}
+
+.footer-pill b{
+  color: var(--cream);
+  font-weight: 800;
+}
+
+/* ---------- Keep everything on one screen on mobile ---------- */
+@media (max-width: 480px){
+  .page{ padding: 20px 18px 20px; gap: 16px; }
+  .logo-wrap img{ max-height: 76px; }
+  h1.title{ font-size: 26px; }
+  .subtitle{ font-size: 11px; }
+  .grid{ gap: 8px; }
+  .footer-pill{ padding: 8px 16px; font-size: 12px; }
+}
+
+/* ---------- Modal (shared) ---------- */
+
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(37,37,37,0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.modal-backdrop.open{ display: flex; }
+
+.modal-box{
+  background: var(--cream);
+  border-radius: var(--radius-lg);
+  padding: 32px 26px 26px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+.modal-box img{
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  margin: 0 auto 14px;
+}
+
+.modal-box p{
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0 0 22px;
+}
+
+.modal-box .name-input{
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 12px 14px;
+  border: 2px solid var(--blue);
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.modal-box .name-input:focus{
+  border-color: var(--blue-ink);
+}
+
+.modal-box button{
+  border: none;
+  background: var(--blue);
+  color: var(--yellow);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 12px 26px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.modal-box button:hover{ background: var(--blue-ink); }

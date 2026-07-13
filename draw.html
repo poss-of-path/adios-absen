@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adiosection — Day 3: Draw</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="draw.css">
+</head>
+<body>
+
+<div class="page">
+
+  <div class="logo-wrap">
+    <img src="assets/logo.png" alt="Adiosection logo">
+  </div>
+
+  <div class="game-header">
+    <div class="game-title">DRAW & COLOR</div>
+    <div class="game-subtitle">Pilih kuas, warna, dan ember cat di atas, lalu gambar atau warnai kanvas di bawah sebelum mengunduhnya.</div>
+  </div>
+
+  <div class="toolbar">
+
+    <div class="tool-row">
+      <button class="tool-btn active" id="toolPen" title="Pen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+      </button>
+      <button class="tool-btn" id="toolFill" title="Fill / Cat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m19 11-8-8-8.5 8.5a2.83 2.83 0 0 0 0 4L7 20a2.83 2.83 0 0 0 4 0Z"></path>
+          <path d="M5 2 2 5"></path>
+          <path d="M19 9h.01"></path>
+          <path d="M22 17a2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-1.1 2-3.5 2-3.5s2 2.4 2 3.5Z"></path>
+        </svg>
+      </button>
+      <button class="tool-btn" id="toolEraser" title="Eraser">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.7 5.7c1 1 1 2.5 0 3.4L13 21"></path>
+          <path d="M22 21H7"></path>
+          <path d="m5 11 9 9"></path>
+        </svg>
+      </button>
+
+      <div class="tool-divider"></div>
+
+      <button class="reset-btn" id="toolReset" title="Bersihkan gambar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+        Reset
+      </button>
+    </div>
+
+    <div class="thickness-row">
+      <span class="thickness-label">KETEBALAN</span>
+      <input type="range" id="thicknessSlider" min="2" max="40" value="8">
+      <div class="thickness-preview"><div class="thickness-dot" id="thicknessDot"></div></div>
+    </div>
+
+    <div class="palette-row" id="paletteRow">
+      <label class="swatch-custom" title="Warna kustom">
+        <input type="color" id="customColor" value="#0063c3">
+      </label>
+      <!-- swatches injected by JS -->
+    </div>
+
+  </div>
+
+  <div class="canvas-stage">
+    <div class="canvas-square" id="canvasSquare">
+      <canvas id="baseLayer"></canvas>
+      <canvas id="drawLayer"></canvas>
+    </div>
+  </div>
+
+  <div class="download-wrap">
+    <button class="download-btn" id="downloadBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Unduh Gambar
+    </button>
+  </div>
+
+  <div class="back-link-wrap">
+    <a class="back-link" href="index.html">← Back to Attendance</a>
+  </div>
+
+</div>
+
+<!-- Congrats popup -->
+<div class="modal-backdrop" id="winModal">
+  <div class="modal-box">
+    <img id="winIcon" src="assets/icon4.png" alt="">
+    <p id="winMessage">Congratulations!</p>
+    <button onclick="window.location.href='index.html'">Back to Home</button>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const playerName = params.get('name') || 'Friend';
+const dayNumber = params.get('day') || '3';
+
+document.getElementById('winMessage').textContent =
+  `Congratulations, ${playerName}! You've completed Day ${dayNumber} attendance.`;
+
+document.getElementById('winIcon').addEventListener('error', function(){
+  const fallback = document.createElement('div');
+  fallback.textContent = '⭐';
+  fallback.style.fontSize = '56px';
+  fallback.style.lineHeight = '1';
+  fallback.style.margin = '0 auto 14px';
+  this.replaceWith(fallback);
+});
+
+/* =========================================================
+   CANVAS SETUP — two stacked layers:
+   - baseLayer: cream background + assets/draw-img.png guide
+                (never touched by drawing tools)
+   - drawLayer: transparent, this is where the user draws.
+                Eraser clears pixels here (destination-out),
+                revealing the base layer underneath.
+========================================================= */
+
+const RES = 640; // fixed internal resolution, keeps drawings intact on resize
+
+const baseCanvas = document.getElementById('baseLayer');
+const drawCanvas = document.getElementById('drawLayer');
+baseCanvas.width = drawCanvas.width = RES;
+baseCanvas.height = drawCanvas.height = RES;
+
+const baseCtx = baseCanvas.getContext('2d');
+const drawCtx = drawCanvas.getContext('2d');
+
+// offscreen canvas used only to composite base+draw for fill-boundary detection
+const mergeCanvas = document.createElement('canvas');
+mergeCanvas.width = RES; mergeCanvas.height = RES;
+const mergeCtx = mergeCanvas.getContext('2d');
+
+function drawBaseLayer(){
+  baseCtx.fillStyle = '#fcf9ee';
+  baseCtx.fillRect(0, 0, RES, RES);
+
+  const img = new Image();
+  img.onload = () => {
+    const pad = 0.92;
+    const scale = Math.min(RES / img.width, RES / img.height) * pad;
+    const iw = img.width * scale, ih = img.height * scale;
+    const ix = (RES - iw) / 2, iy = (RES - ih) / 2;
+    baseCtx.drawImage(img, ix, iy, iw, ih);
+  };
+  img.onerror = () => {
+    // draw-img.png not added yet — leave a plain cream canvas, no crash
+  };
+  img.src = 'assets/draw-img.png';
+}
+drawBaseLayer();
+
+/* ---------------- Toolbar state ---------------- */
+
+const COLORS = [
+  '#252525', '#ffffff', '#0063c3', '#f3d141', '#e94f37', '#2ec4b6',
+  '#ff6b9d', '#8338ec', '#06d6a0', '#fb8500', '#3a86ff', '#ff006e',
+  '#ffbe0b', '#8ac926', '#5e548e', '#c9184a'
+];
+
+let currentTool = 'pen'; // 'pen' | 'fill' | 'eraser'
+let currentColor = '#0063c3';
+let thickness = 8;
+
+const paletteRow = document.getElementById('paletteRow');
+COLORS.forEach(c => {
+  const b = document.createElement('button');
+  b.className = 'swatch';
+  b.style.background = c;
+  b.dataset.color = c;
+  if(c === currentColor) b.classList.add('active');
+  b.addEventListener('click', () => selectColor(c));
+  paletteRow.appendChild(b);
+});
+
+const customColorInput = document.getElementById('customColor');
+customColorInput.addEventListener('input', (e) => selectColor(e.target.value, true));
+
+function selectColor(c, fromCustom){
+  currentColor = c;
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.classList.toggle('active', !fromCustom && s.dataset.color === c);
+  });
+  if(currentTool === 'eraser') setTool('pen');
+}
+
+function setTool(tool){
+  currentTool = tool;
+  document.getElementById('toolPen').classList.toggle('active', tool === 'pen');
+  document.getElementById('toolFill').classList.toggle('active', tool === 'fill');
+  document.getElementById('toolEraser').classList.toggle('active', tool === 'eraser');
+  drawCanvas.style.cursor = tool === 'fill' ? 'copy' : 'crosshair';
+}
+
+document.getElementById('toolPen').addEventListener('click', () => setTool('pen'));
+document.getElementById('toolFill').addEventListener('click', () => setTool('fill'));
+document.getElementById('toolEraser').addEventListener('click', () => setTool('eraser'));
+
+const thicknessSlider = document.getElementById('thicknessSlider');
+const thicknessDot = document.getElementById('thicknessDot');
+function updateThicknessDot(){
+  const size = Math.max(3, Math.min(28, thickness));
+  thicknessDot.style.width = size + 'px';
+  thicknessDot.style.height = size + 'px';
+}
+thicknessSlider.addEventListener('input', (e) => {
+  thickness = +e.target.value;
+  updateThicknessDot();
+});
+updateThicknessDot();
+
+document.getElementById('toolReset').addEventListener('click', () => {
+  if(confirm('Bersihkan seluruh gambar?')){
+    drawCtx.clearRect(0, 0, RES, RES);
+  }
+});
+
+/* ---------------- Drawing (pen / eraser) ---------------- */
+
+let drawing = false;
+let lastPos = null;
+
+function getPos(e){
+  const rect = drawCanvas.getBoundingClientRect();
+  const scaleX = RES / rect.width;
+  const scaleY = RES / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY
+  };
+}
+
+function strokeTo(pos){
+  drawCtx.lineJoin = 'round';
+  drawCtx.lineCap = 'round';
+  drawCtx.lineWidth = thickness;
+
+  if(currentTool === 'eraser'){
+    drawCtx.globalCompositeOperation = 'destination-out';
+    drawCtx.strokeStyle = 'rgba(0,0,0,1)';
+  } else {
+    drawCtx.globalCompositeOperation = 'source-over';
+    drawCtx.strokeStyle = currentColor;
+  }
+
+  drawCtx.beginPath();
+  drawCtx.moveTo(lastPos.x, lastPos.y);
+  drawCtx.lineTo(pos.x, pos.y);
+  drawCtx.stroke();
+
+  // dot for single taps/clicks
+  drawCtx.beginPath();
+  drawCtx.arc(pos.x, pos.y, thickness / 2, 0, Math.PI * 2);
+  drawCtx.fillStyle = currentTool === 'eraser' ? 'rgba(0,0,0,1)' : currentColor;
+  drawCtx.fill();
+
+  lastPos = pos;
+}
+
+drawCanvas.addEventListener('pointerdown', (e) => {
+  const pos = getPos(e);
+
+  if(currentTool === 'fill'){
+    floodFill(Math.floor(pos.x), Math.floor(pos.y), currentColor);
+    return;
+  }
+
+  drawing = true;
+  lastPos = pos;
+  drawCanvas.setPointerCapture(e.pointerId);
+  strokeTo(pos); // register the initial point as a dot
+});
+
+drawCanvas.addEventListener('pointermove', (e) => {
+  if(!drawing) return;
+  strokeTo(getPos(e));
+});
+
+function endStroke(){
+  drawing = false;
+  lastPos = null;
+}
+drawCanvas.addEventListener('pointerup', endStroke);
+drawCanvas.addEventListener('pointerleave', endStroke);
+drawCanvas.addEventListener('pointercancel', endStroke);
+
+/* ---------------- Fill bucket (flood fill) ---------------- */
+
+function hexToRgb(hex){
+  const v = hex.replace('#', '');
+  const n = parseInt(v.length === 3
+    ? v.split('').map(ch => ch + ch).join('')
+    : v, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function floodFill(startX, startY, fillHex){
+  if(startX < 0 || startX >= RES || startY < 0 || startY >= RES) return;
+
+  // composite base + current drawing so fills respect guide-image line art
+  mergeCtx.clearRect(0, 0, RES, RES);
+  mergeCtx.drawImage(baseCanvas, 0, 0);
+  mergeCtx.drawImage(drawCanvas, 0, 0);
+  const merged = mergeCtx.getImageData(0, 0, RES, RES);
+  const md = merged.data;
+
+  const drawData = drawCtx.getImageData(0, 0, RES, RES);
+  const dd = drawData.data;
+
+  const startIdx = (startY * RES + startX) * 4;
+  const startR = md[startIdx], startG = md[startIdx + 1], startB = md[startIdx + 2], startA = md[startIdx + 3];
+
+  const fill = hexToRgb(fillHex);
+  if(fill.r === startR && fill.g === startG && fill.b === startB && startA === 255) return;
+
+  const tolerance = 60;
+  const tolSq = tolerance * tolerance;
+
+  function matches(i){
+    const dr = md[i] - startR, dg = md[i + 1] - startG, db = md[i + 2] - startB, da = md[i + 3] - startA;
+    return (dr * dr + dg * dg + db * db + da * da) <= tolSq;
+  }
+
+  const visited = new Uint8Array(RES * RES);
+  const stack = [[startX, startY]];
+
+  while(stack.length){
+    const [x, y] = stack.pop();
+    if(x < 0 || x >= RES || y < 0 || y >= RES) continue;
+    const p = y * RES + x;
+    if(visited[p]) continue;
+    const i = p * 4;
+    if(!matches(i)) continue;
+    visited[p] = 1;
+    dd[i] = fill.r; dd[i + 1] = fill.g; dd[i + 2] = fill.b; dd[i + 3] = 255;
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+  }
+
+  drawCtx.putImageData(drawData, 0, 0);
+}
+
+/* ---------------- Download ---------------- */
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = RES;
+  exportCanvas.height = RES;
+  const exportCtx = exportCanvas.getContext('2d');
+  exportCtx.drawImage(baseCanvas, 0, 0);
+  exportCtx.drawImage(drawCanvas, 0, 0);
+
+  const link = document.createElement('a');
+  const safeName = playerName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'drawing';
+  link.download = `adiosection-day${dayNumber}-${safeName}.png`;
+  link.href = exportCanvas.toDataURL('image/png');
+  link.click();
+
+  setTimeout(() => {
+    document.getElementById('winModal').classList.add('open');
+  }, 300);
+});
+</script>
+
+</body>
+</html>

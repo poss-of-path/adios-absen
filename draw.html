@@ -193,7 +193,7 @@ function drawBadge(){
 
   const name = (playerName || 'FRIEND').toUpperCase();
 
-  const H = RES * 0.09;          // outer pill height
+  const H = RES * 0.07;          // outer pill height
   const border = H * 0.07;       // outer stroke thickness
   const innerH = H - border * 2;
   const textPadX = innerH * 0.5;
@@ -224,7 +224,7 @@ function drawBadge(){
 
   // outer capsule — white fill, blue border
   roundRectPath(badgeCtx, outerX, outerY, outerWidth, H, H / 2);
-  badgeCtx.fillStyle = '#0063c3';
+  badgeCtx.fillStyle = '#fcf9ee';
   badgeCtx.fill();
   badgeCtx.lineWidth = border;
   badgeCtx.strokeStyle = '#0063c3';

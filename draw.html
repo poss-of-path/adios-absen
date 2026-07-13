@@ -192,37 +192,48 @@ function drawBadge(){
   badgeCtx.clearRect(0, 0, RES, RES);
 
   const name = (playerName || 'FRIEND').toUpperCase();
+  const LABEL = 'Dadah';
 
-  const H = RES * 0.07;          // outer pill height
-  const border = H * 0.08;       // outer stroke thickness
-  const innerH = H - border * 2;
-  const textPadX = innerH * 0.5;
-  const byLeftPad = H * 0.34;
-  const gap = H * 0.16;
+  const H = RES * 0.09;          // outer pill height
+  const border = H * 0.06;       // outer stroke thickness (tipis)
+  const yellowH = H * 0.62;      // tinggi pil kuning
+  const yellowPadX = yellowH * 0.42;
+  const leftPad = H * 0.16;
+  const gap = H * 0.22;
+  const rightPad = H * 0.32;
 
-  let fontSize = innerH * 0.6;
-  badgeCtx.font = `500 ${H * 0.4}px Inter, sans-serif`;
-  const byWidth = badgeCtx.measureText('BY').width;
+  let labelFontSize = yellowH * 0.55;
+  let nameFontSize = H * 0.5;
 
-  badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;
+  badgeCtx.font = `800 ${labelFontSize}px Inter, sans-serif`;
+  let labelWidth = badgeCtx.measureText(LABEL).width;
+  let yellowWidth = labelWidth + yellowPadX * 2;
+
+  badgeCtx.font = `800 ${nameFontSize}px Inter, sans-serif`;
   let nameWidth = badgeCtx.measureText(name).width;
-  let innerWidth = nameWidth + textPadX * 2;
-  let outerWidth = byLeftPad + byWidth + gap + innerWidth + border;
+
+  let outerWidth = border + leftPad + yellowWidth + gap + nameWidth + rightPad + border;
 
   const maxOuterWidth = RES * 0.86;
   if(outerWidth > maxOuterWidth){
     const scale = maxOuterWidth / outerWidth;
-    fontSize *= scale;
-    badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;
+    labelFontSize *= scale;
+    nameFontSize *= scale;
+
+    badgeCtx.font = `800 ${labelFontSize}px Inter, sans-serif`;
+    labelWidth = badgeCtx.measureText(LABEL).width;
+    yellowWidth = labelWidth + yellowPadX * 2;
+
+    badgeCtx.font = `800 ${nameFontSize}px Inter, sans-serif`;
     nameWidth = badgeCtx.measureText(name).width;
-    innerWidth = nameWidth + textPadX * 2;
-    outerWidth = byLeftPad + byWidth + gap + innerWidth + border;
+
+    outerWidth = border + leftPad + yellowWidth + gap + nameWidth + rightPad + border;
   }
 
   const outerX = (RES - outerWidth) / 2;
   const outerY = RES * 0.04;
 
-  // outer capsule — white fill, blue border
+  // kapsul luar — isi cream, border biru tipis
   roundRectPath(badgeCtx, outerX, outerY, outerWidth, H, H / 2);
   badgeCtx.fillStyle = '#fcf9ee';
   badgeCtx.fill();
@@ -230,27 +241,27 @@ function drawBadge(){
   badgeCtx.strokeStyle = '#0063c3';
   badgeCtx.stroke();
 
-  // inner capsule — blue fill, hugs the right side
-  const innerX = outerX + outerWidth - border - innerWidth;
-  const innerY = outerY + border;
-  roundRectPath(badgeCtx, innerX, innerY, innerWidth, innerH, innerH / 2);
+  // pil kuning — label "Dadah"
+  const yellowX = outerX + border + leftPad;
+  const yellowY = outerY + (H - yellowH) / 2;
+  roundRectPath(badgeCtx, yellowX, yellowY, yellowWidth, yellowH, yellowH / 2);
   badgeCtx.fillStyle = '#f3d141';
   badgeCtx.fill();
 
-  // "BY" label
-  badgeCtx.font = `800 ${H * 0.4}px Inter, sans-serif`;
-  badgeCtx.fillStyle = '#f3d141';
-  badgeCtx.textBaseline = 'middle';
-  badgeCtx.textAlign = 'left';
-  badgeCtx.fillText('BY', outerX + byLeftPad, outerY + H / 2 + H * 0.02);
-
-  // player name
-  badgeCtx.font = `800 ${fontSize}px Inter, sans-serif`;
+  badgeCtx.font = `800 ${labelFontSize}px Inter, sans-serif`;
   badgeCtx.fillStyle = '#0063c3';
+  badgeCtx.textBaseline = 'middle';
   badgeCtx.textAlign = 'center';
-  badgeCtx.fillText(name, innerX + innerWidth / 2, innerY + innerH / 2 + fontSize * 0.03);
-}
+  badgeCtx.fillText(LABEL, yellowX + yellowWidth / 2, yellowY + yellowH / 2 + labelFontSize * 0.03);
 
+  // nama pemain — langsung di atas background luar
+  const nameX = yellowX + yellowWidth + gap;
+  badgeCtx.font = `800 ${nameFontSize}px Inter, sans-serif`;
+  badgeCtx.fillStyle = '#0063c3';
+  badgeCtx.textAlign = 'left';
+  badgeCtx.fillText(name, nameX, outerY + H / 2 + nameFontSize * 0.03);
+}
+  
 drawBadge();
 if(document.fonts && document.fonts.ready){
   document.fonts.ready.then(drawBadge); // re-draw once Inter is fully loaded for accurate metrics

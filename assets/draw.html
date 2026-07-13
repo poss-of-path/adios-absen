@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adiosection — Day 3: Draw</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="draw.css">
+</head>
+<body>
+
+<div class="page">
+
+  <div class="logo-wrap">
+    <img src="assets/logo.png" alt="Adiosection logo">
+  </div>
+
+  <div class="game-header">
+    <div class="game-title">CREATE YOUR ADI</div>
+    <div class="game-subtitle">Hias dan gambar Adi sesuai imaginasi masing-masing. Unduh hasil gambar setelahnya!</div>
+  </div>
+
+  <div class="toolbar">
+
+    <div class="tool-row">
+      <button class="tool-btn active" id="toolPen" title="Pen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+      </button>
+      <button class="tool-btn" id="toolFill" title="Fill / Cat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m19 11-8-8-8.5 8.5a2.83 2.83 0 0 0 0 4L7 20a2.83 2.83 0 0 0 4 0Z"></path>
+          <path d="M5 2 2 5"></path>
+          <path d="M19 9h.01"></path>
+          <path d="M22 17a2 2 0 0 1-2 2 2 2 0 0 1-2-2c0-1.1 2-3.5 2-3.5s2 2.4 2 3.5Z"></path>
+        </svg>
+      </button>
+      <button class="tool-btn" id="toolEraser" title="Eraser">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.7 5.7c1 1 1 2.5 0 3.4L13 21"></path>
+          <path d="M22 21H7"></path>
+          <path d="m5 11 9 9"></path>
+        </svg>
+      </button>
+
+      <div class="tool-divider"></div>
+
+      <button class="tool-btn" id="toolUndo" title="Urungkan garis terakhir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+      </button>
+      <button class="reset-btn" id="toolReset" title="Bersihkan gambar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+        Reset
+      </button>
+    </div>
+
+    <div class="thickness-row">
+      <input type="range" id="thicknessSlider" min="2" max="40" value="8">
+      <div class="thickness-preview"><div class="thickness-dot" id="thicknessDot"></div></div>
+
+      <div class="tool-divider"></div>
+
+      <div class="palette-row" id="paletteRow">
+        <!-- primary swatches injected by JS -->
+        <label class="swatch-custom" title="Warna lainnya">
+          <input type="color" id="customColor" value="#0063c3">
+        </label>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="canvas-stage">
+    <div class="canvas-square" id="canvasSquare">
+      <canvas id="baseLayer"></canvas>
+      <canvas id="drawLayer"></canvas>
+      <canvas id="badgeLayer"></canvas>
+    </div>
+  </div>
+
+  <div class="download-wrap">
+    <button class="download-btn" id="downloadBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Unduh Gambar
+    </button>
+  </div>
+
+</div>
+
+<!-- Congrats popup -->
+<div class="modal-backdrop" id="winModal">
+  <div class="modal-box">
+    <img id="winIcon" src="assets/icon4.png" alt="">
+    <p id="winMessage">Congratulations!</p>
+    <button onclick="window.location.href='index.html'">Back to Home</button>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const playerName = params.get('name') || 'Friend';
+const dayNumber = params.get('day') || '3';
+
+document.getElementById('winMessage').textContent =
+  `Congratulations, ${playerName}! You've completed Day ${dayNumber} attendance.`;
+
+document.getElementById('winIcon').addEventListener('error', function(){
+  const fallback = document.createElement('div');
+  fallback.textContent = '⭐';
+  fallback.style.fontSize = '56px';
+  fallback.style.lineHeight = '1';
+  fallback.style.margin = '0 auto 14px';
+  this.replaceWith(fallback);
+});
+
+/* =========================================================
+   CANVAS SETUP — two stacked layers:
+   - baseLayer: cream background + assets/draw-img.png guide
+                (never touched by drawing tools)
+   - drawLayer: transparent, this is where the user draws.
+                Eraser clears pixels here (destination-out),
+                revealing the base layer underneath.
+========================================================= */
+
+const RES = 640; // fixed internal resolution, keeps drawings intact on resize
+
+const baseCanvas = document.getElementById('baseLayer');
+const drawCanvas = document.getElementById('drawLayer');
+const badgeCanvas = document.getElementById('badgeLayer');
+baseCanvas.width = drawCanvas.width = badgeCanvas.width = RES;
+baseCanvas.height = drawCanvas.height = badgeCanvas.height = RES;
+
+const baseCtx = baseCanvas.getContext('2d');
+const drawCtx = drawCanvas.getContext('2d');
+const badgeCtx = badgeCanvas.getContext('2d');
+
+// offscreen canvas used only to composite base+draw for fill-boundary detection
+const mergeCanvas = document.createElement('canvas');
+mergeCanvas.width = RES; mergeCanvas.height = RES;
+const mergeCtx = mergeCanvas.getContext('2d');
+
+function drawBaseLayer(){
+  baseCtx.fillStyle = '#fcf9ee';
+  baseCtx.fillRect(0, 0, RES, RES);
+
+  const img = new Image();
+  img.onload = () => {
+    const pad = 0.92;
+    const scale = Math.min(RES / img.width, RES / img.height) * pad;
+    const iw = img.width * scale, ih = img.height * scale;
+    const ix = (RES - iw) / 2, iy = (RES - ih) / 2;
+    baseCtx.drawImage(img, ix, iy, iw, ih);
+  };
+  img.onerror = () => {
+    // draw-img.png not added yet — leave a plain cream canvas, no crash
+  };
+  img.src = 'assets/draw-img.png';
+}
+drawBaseLayer();
+
+/* =========================================================
+   "BY {NAME}" BADGE — rendered onto its own canvas layer so it
+   stays fixed on top while drawing, and gets baked into the
+   downloaded image automatically.
+========================================================= */
+
+function roundRectPath(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawBadge(){
+  badgeCtx.clearRect(0, 0, RES, RES);
+
+  const name = (playerName || 'FRIEND').toUpperCase();
+  const LABEL = 'Dadah';
+
+  const H = RES * 0.065;         // outer pill height (lebih kecil)
+  const border = H * 0.045;      // outer stroke thickness (lebih tipis)
+  const yellowH = H * 0.6;       // tinggi pil kuning
+  const yellowPadX = yellowH * 0.38;
+  const leftPad = H * 0.14;
+  const gap = H * 0.2;
+  const rightPad = H * 0.28;
+
+  let labelFontSize = yellowH * 0.5;
+  let nameFontSize = H * 0.46;
+
+  badgeCtx.font = `500 ${labelFontSize}px Inter, sans-serif`;
+  let labelWidth = badgeCtx.measureText(LABEL).width;
+  let yellowWidth = labelWidth + yellowPadX * 2;
+
+  badgeCtx.font = `800 ${nameFontSize}px Inter, sans-serif`;
+  let nameWidth = badgeCtx.measureText(name).width;
+
+  let outerWidth = border + leftPad + yellowWidth + gap + nameWidth + rightPad + border;
+
+  const maxOuterWidth = RES * 0.8;
+  if(outerWidth > maxOuterWidth){
+    const scale = maxOuterWidth / outerWidth;
+    labelFontSize *= scale;
+    nameFontSize *= scale;
+
+    badgeCtx.font = `500 ${labelFontSize}px Inter, sans-serif`;
+    labelWidth = badgeCtx.measureText(LABEL).width;
+    yellowWidth = labelWidth + yellowPadX * 2;
+
+    badgeCtx.font = `800 ${nameFontSize}px Inter, sans-serif`;
+    nameWidth = badgeCtx.measureText(name).width;
+
+    outerWidth = border + leftPad + yellowWidth + gap + nameWidth + rightPad + border;
+  }
+
+  const outerX = (RES - outerWidth) / 2;
+  const outerY = RES * 0.04;
+
+  // kapsul luar — isi cream, border biru tipis
+  roundRectPath(badgeCtx, outerX, outerY, outerWidth, H, H / 2);
+  badgeCtx.fillStyle = '#fcf9ee';
+  badgeCtx.fill();
+  badgeCtx.lineWidth = border;
+  badgeCtx.strokeStyle = '#0063c3';
+  badgeCtx.stroke();
+
+  // pil kuning — label "Dadah"
+  const yellowX = outerX + border + leftPad;
+  const yellowY = outerY + (H - yellowH) / 2;
+  roundRectPath(badgeCtx, yellowX, yellowY, yellowWidth, yellowH, yellowH / 2);
+  badgeCtx.fillStyle = '#f3d141';
+  badgeCtx.fill();
+
+  badgeCtx.font = `500 ${labelFontSize}px Inter, sans-serif`;
+  badgeCtx.fillStyle = '#0063c3';
+  badgeCtx.textBaseline = 'middle';
+  badgeCtx.textAlign = 'center';
+  badgeCtx.fillText(LABEL, yellowX + yellowWidth / 2, yellowY + yellowH / 2 + labelFontSize * 0.03);
+
+  // nama pemain — langsung di atas background luar
+  const nameX = yellowX + yellowWidth + gap;
+  badgeCtx.font = `800 ${nameFontSize}px Inter, sans-serif`;
+  badgeCtx.fillStyle = '#0063c3';
+  badgeCtx.textAlign = 'left';
+  badgeCtx.fillText(name, nameX, outerY + H / 2 + nameFontSize * 0.03);
+}
+  
+drawBadge();
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(drawBadge); // re-draw once Inter is fully loaded for accurate metrics
+}
+
+/* ---------------- Toolbar state ---------------- */
+
+const COLORS = ['#252525', '#ffffff', '#0063c3', '#f3d141', '#e94f37', '#06d6a0'];
+
+let currentTool = 'pen'; // 'pen' | 'fill' | 'eraser'
+let currentColor = '#0063c3';
+let thickness = 8;
+
+const paletteRow = document.getElementById('paletteRow');
+const customColorLabel = paletteRow.querySelector('.swatch-custom');
+COLORS.forEach(c => {
+  const b = document.createElement('button');
+  b.className = 'swatch';
+  b.style.background = c;
+  b.dataset.color = c;
+  if(c === currentColor) b.classList.add('active');
+  b.addEventListener('click', () => selectColor(c));
+  paletteRow.insertBefore(b, customColorLabel);
+});
+
+const customColorInput = document.getElementById('customColor');
+customColorInput.addEventListener('input', (e) => selectColor(e.target.value, true));
+
+function selectColor(c, fromCustom){
+  currentColor = c;
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.classList.toggle('active', !fromCustom && s.dataset.color === c);
+  });
+  if(currentTool === 'eraser') setTool('pen');
+}
+
+function setTool(tool){
+  currentTool = tool;
+  document.getElementById('toolPen').classList.toggle('active', tool === 'pen');
+  document.getElementById('toolFill').classList.toggle('active', tool === 'fill');
+  document.getElementById('toolEraser').classList.toggle('active', tool === 'eraser');
+  drawCanvas.style.cursor = tool === 'fill' ? 'copy' : 'crosshair';
+}
+
+document.getElementById('toolPen').addEventListener('click', () => setTool('pen'));
+document.getElementById('toolFill').addEventListener('click', () => setTool('fill'));
+document.getElementById('toolEraser').addEventListener('click', () => setTool('eraser'));
+
+const thicknessSlider = document.getElementById('thicknessSlider');
+const thicknessDot = document.getElementById('thicknessDot');
+function updateThicknessDot(){
+  const size = Math.max(3, Math.min(28, thickness));
+  thicknessDot.style.width = size + 'px';
+  thicknessDot.style.height = size + 'px';
+}
+thicknessSlider.addEventListener('input', (e) => {
+  thickness = +e.target.value;
+  updateThicknessDot();
+});
+updateThicknessDot();
+
+/* ---------------- Undo history ---------------- */
+
+const historyStack = [];
+const HISTORY_LIMIT = 25;
+
+function saveHistory(){
+  try {
+    const snapshot = drawCtx.getImageData(0, 0, RES, RES);
+    historyStack.push(snapshot);
+    if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+  } catch(e) { /* ignore */ }
+}
+
+function undo(){
+  if(!historyStack.length) return;
+  const snapshot = historyStack.pop();
+  drawCtx.putImageData(snapshot, 0, 0);
+}
+
+document.getElementById('toolUndo').addEventListener('click', undo);
+
+document.getElementById('toolReset').addEventListener('click', () => {
+  if(confirm('Bersihkan seluruh gambar?')){
+    saveHistory();
+    drawCtx.clearRect(0, 0, RES, RES);
+  }
+});
+
+/* ---------------- Drawing (pen / eraser) ---------------- */
+
+let drawing = false;
+let strokePoints = [];
+
+function getPos(e){
+  const rect = drawCanvas.getBoundingClientRect();
+  const scaleX = RES / rect.width;
+  const scaleY = RES / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY
+  };
+}
+
+function midpoint(a, b){
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+function setStrokeStyleForTool(){
+  drawCtx.lineJoin = 'round';
+  drawCtx.lineCap = 'round';
+  drawCtx.lineWidth = thickness;
+  if(currentTool === 'eraser'){
+    drawCtx.globalCompositeOperation = 'destination-out';
+    drawCtx.strokeStyle = 'rgba(0,0,0,1)';
+    drawCtx.fillStyle = 'rgba(0,0,0,1)';
+  } else {
+    drawCtx.globalCompositeOperation = 'source-over';
+    drawCtx.strokeStyle = currentColor;
+    drawCtx.fillStyle = currentColor;
+  }
+}
+
+function beginStroke(pos){
+  saveHistory();
+  strokePoints = [pos];
+  setStrokeStyleForTool();
+
+  // draw a dot immediately so a single tap/click still shows up
+  drawCtx.beginPath();
+  drawCtx.arc(pos.x, pos.y, thickness / 2, 0, Math.PI * 2);
+  drawCtx.fill();
+}
+
+// Smooths freehand input by drawing a quadratic curve through the
+// midpoints of the last three points, instead of straight segments —
+// removes the jittery/jagged look and gives an iPad-like smooth line.
+function extendStroke(pos){
+  strokePoints.push(pos);
+  const len = strokePoints.length;
+
+  if(len < 3){
+    const p0 = strokePoints[len - 2], p1 = strokePoints[len - 1];
+    drawCtx.beginPath();
+    drawCtx.moveTo(p0.x, p0.y);
+    drawCtx.lineTo(p1.x, p1.y);
+    drawCtx.stroke();
+    return;
+  }
+
+  const p1 = strokePoints[len - 3];
+  const p2 = strokePoints[len - 2];
+  const p3 = strokePoints[len - 1];
+  const mid1 = midpoint(p1, p2);
+  const mid2 = midpoint(p2, p3);
+
+  drawCtx.beginPath();
+  drawCtx.moveTo(mid1.x, mid1.y);
+  drawCtx.quadraticCurveTo(p2.x, p2.y, mid2.x, mid2.y);
+  drawCtx.stroke();
+
+  // keep only the last few points in memory — we never need more for smoothing
+  if(strokePoints.length > 4) strokePoints.shift();
+}
+
+drawCanvas.addEventListener('pointerdown', (e) => {
+  const pos = getPos(e);
+
+  if(currentTool === 'fill'){
+    saveHistory();
+    floodFill(Math.floor(pos.x), Math.floor(pos.y), currentColor);
+    return;
+  }
+
+  drawing = true;
+  drawCanvas.setPointerCapture(e.pointerId);
+  beginStroke(pos);
+});
+
+drawCanvas.addEventListener('pointermove', (e) => {
+  if(!drawing) return;
+  extendStroke(getPos(e));
+});
+
+function endStroke(){
+  drawing = false;
+  strokePoints = [];
+}
+drawCanvas.addEventListener('pointerup', endStroke);
+drawCanvas.addEventListener('pointerleave', endStroke);
+drawCanvas.addEventListener('pointercancel', endStroke);
+
+/* ---------------- Fill bucket (flood fill) ---------------- */
+
+function hexToRgb(hex){
+  const v = hex.replace('#', '');
+  const n = parseInt(v.length === 3
+    ? v.split('').map(ch => ch + ch).join('')
+    : v, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function floodFill(startX, startY, fillHex){
+  if(startX < 0 || startX >= RES || startY < 0 || startY >= RES) return;
+
+  // composite base + current drawing so fills respect guide-image line art
+  mergeCtx.clearRect(0, 0, RES, RES);
+  mergeCtx.drawImage(baseCanvas, 0, 0);
+  mergeCtx.drawImage(drawCanvas, 0, 0);
+  const merged = mergeCtx.getImageData(0, 0, RES, RES);
+  const md = merged.data;
+
+  const drawData = drawCtx.getImageData(0, 0, RES, RES);
+  const dd = drawData.data;
+
+  const startIdx = (startY * RES + startX) * 4;
+  const startR = md[startIdx], startG = md[startIdx + 1], startB = md[startIdx + 2], startA = md[startIdx + 3];
+
+  const fill = hexToRgb(fillHex);
+  if(fill.r === startR && fill.g === startG && fill.b === startB && startA === 255) return;
+
+  const tolerance = 60;
+  const tolSq = tolerance * tolerance;
+
+  function matches(i){
+    const dr = md[i] - startR, dg = md[i + 1] - startG, db = md[i + 2] - startB, da = md[i + 3] - startA;
+    return (dr * dr + dg * dg + db * db + da * da) <= tolSq;
+  }
+
+  const visited = new Uint8Array(RES * RES);
+  const stack = [[startX, startY]];
+
+  while(stack.length){
+    const [x, y] = stack.pop();
+    if(x < 0 || x >= RES || y < 0 || y >= RES) continue;
+    const p = y * RES + x;
+    if(visited[p]) continue;
+    const i = p * 4;
+    if(!matches(i)) continue;
+    visited[p] = 1;
+    dd[i] = fill.r; dd[i + 1] = fill.g; dd[i + 2] = fill.b; dd[i + 3] = 255;
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+  }
+
+  drawCtx.putImageData(drawData, 0, 0);
+}
+
+/* ---------------- Download ---------------- */
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = RES;
+  exportCanvas.height = RES;
+  const exportCtx = exportCanvas.getContext('2d');
+  exportCtx.drawImage(baseCanvas, 0, 0);
+  exportCtx.drawImage(drawCanvas, 0, 0);
+  exportCtx.drawImage(badgeCanvas, 0, 0);
+
+  const link = document.createElement('a');
+  const safeName = playerName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'drawing';
+  link.download = `adiosection-day${dayNumber}-${safeName}.png`;
+  link.href = exportCanvas.toDataURL('image/png');
+  link.click();
+
+  setTimeout(() => {
+    document.getElementById('winModal').classList.add('open');
+  }, 300);
+});
+</script>
+
+</body>
+</html>
